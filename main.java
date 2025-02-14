@@ -20,14 +20,14 @@ public class main {
     private static double remainingBudget;
 
     // static variables to be tweaked by user
-    static final int TRIALS = 15000;
+    static final int TRIALS = 4000;
     static final int NUM_AGENTS = 5;
     static final double W = 1000.0; // constant value to update the reward table
     static double alpha = 0.125; // .125 learning rate
     static double gamma = 0.35; // .35 discount factor
     static final double delta = 1; // power for Q value
     static final double beta = 2; // power for distance
-    static double q0 = 0.8 ; // coefficient for exploration and exploitation
+    static double q0 = 0.8; // coefficient for exploration and exploitation
 
     // flags for graph (do not touch)
     static final int UNVISITED = 0;
@@ -45,16 +45,23 @@ public class main {
     static double total_wt = 0;
     static ArrayList<Integer> route;
     static ArrayList<Integer> routeMax;
-    static int prizeMax=Integer.MIN_VALUE;
+    static int routeMaxIter;
+    static int prizeMax = Integer.MIN_VALUE;
 
     static String bestQRoute;
-    static int bestQRoutePrize=Integer.MIN_VALUE;
+    static int bestQRoutePrize = Integer.MIN_VALUE;
     static int bestQRouteIter;
     static double bestQRouteDist;
 
     // variables for extra credits
     static long randomSeed = 12345; // random seed for inaccessible edge, can change to any long
     static double missingProb = 0.0; // probability of an inaccessible edge
+
+    static String gaOnePrize = "";
+    static String gaTwoPrize = "";
+    static String gaOneDist = "";
+    static String gaTwoDist = "";
+    static StringBuilder prizeCol = new StringBuilder("");
 
     public static void main(String[] args) throws IOException {
         // variables for time tracking
@@ -63,9 +70,54 @@ public class main {
 
         askForUserInputs();
 
-        System.out.println("========== First greedy algorithm ==========");
+        String[] cityList = { "Albany,NY", "Annapolis,MD", "Atlanta,GA", "Augusta,ME", "Austin,TX", "BatonRouge,LA",
+                "Bismarck,ND", "Boise,ID", "Boston,MA", "CarsonCity,NV"/* , "Charleston,WV", "Cheyenne,WY", "Columbia,SC",
+    "Columbus,OH", "Concord,NH", "Denver,CO", "DesMoines,IA", "Dover,DE", "Frankfort,KY", "Harrisburg,PA"*/ };
+
+        
+
+        //System.out.println("========== First greedy algorithm ==========");
+       /*for (int j = 0; j < 4; j++) {
+            for (int i = 0; i < 10; i++) {
+                begin = cityList[i];
+                end = cityList[i];
+                switch (j) {
+                    case 0:
+                        budget = 2000;
+                        break;
+                    case 1:
+                        budget = 4000;
+                        break;
+                    case 2:
+                        budget = 6000;
+                        break;
+                    case 3:
+                        budget = 8000;
+                        break;
+                }
+                // budget =
+                initList();
+                initGraph();
+                initStatics();
+                startTime = System.nanoTime();
+                learnQ();
+                traverseQ();
+                endTime = System.nanoTime();
+                totalTime = (double) (endTime - startTime) / 1000000;
+
+                gaOnePrize+=(total_prize - (arrCities.get(0).pop * 2)) +"\n";
+                gaOneDist+= (budget - remainingBudget) + "\n";
+            }
+            gaOnePrize+="\n";
+            gaOneDist+="\n";
+        }
+        System.out.println("prizze:");
+        System.out.println(gaOnePrize);
+        System.out.println("Dists:");
+        System.out.println(gaOneDist);*/
         initList();
         initGraph();
+        
         startTime = System.nanoTime();
         traverseP();
         endTime = System.nanoTime();
@@ -98,6 +150,7 @@ public class main {
         startTime = System.nanoTime();
         printIlpArrays();
         learnQ();
+        //System.out.println(prizeCol.toString());
         traverseQ();
         endTime = System.nanoTime();
 
@@ -109,13 +162,17 @@ public class main {
         System.out.printf("\nRoute: %s\n", makeRouteString());
         System.out.printf("Remaining Budget: %.2f Miles\n", remainingBudget);
         System.out.println("");
-        System.out.println("Value of P^m: "+  (prizeMax- arrCities.get(0).pop));
-        System.out.println("R^m Route: "+arrCities.get(0).name+" "+ makeRouteString(true));
-       /*  System.out.println("");
-        System.out.println("Best prize collected using Q table route: "+bestQRoutePrize);
-        System.out.println("Distance: "+bestQRouteDist);
-        System.out.println("Route: "+bestQRoute);
-        System.out.println("Found on episode: "+ bestQRouteIter);*/
+        System.out.println("Value of P^m: " + (prizeMax - arrCities.get(0).pop));
+        System.out.println("R^m Route: " + arrCities.get(0).name + " " + makeRouteString(true));
+        System.out.println("Found on episode: " + routeMaxIter);
+        /*
+         * System.out.println("");
+         * System.out.println("Best prize collected using Q table route: "
+         * +bestQRoutePrize);
+         * System.out.println("Distance: "+bestQRouteDist);
+         * System.out.println("Route: "+bestQRoute);
+         * System.out.println("Found on episode: "+ bestQRouteIter);
+         */
         /*
          * System.out.println("\n========== Optimal ILP Algorithm ==========");
          * initList(true);
@@ -135,35 +192,36 @@ public class main {
 
     private static String makeRouteString() {
         String ret = "";
-        for (int i = 0; i <route.size();i++){
-            ret+=arrCities.get(route.get(i)).name;
-            if(i!=route.size()-1){
-                ret+="("+arrCities.get(route.get(i)).originalIndex+")";
-            }else{
-                ret+="("+arrCities.get(route.get(i)).originalIndex+")";
+        for (int i = 0; i < route.size(); i++) {
+            ret += arrCities.get(route.get(i)).name;
+            if (i != route.size() - 1) {
+                ret += "(" + arrCities.get(route.get(i)).originalIndex + ")";
+            } else {
+                ret += "(" + arrCities.get(route.get(i)).originalIndex + ")";
             }
-            
-            if(i!=route.size()-1){
-                ret+=", ";
+
+            if (i != route.size() - 1) {
+                ret += ", ";
             }
-            
+
         }
         return ret;
     }
+
     private static String makeRouteString(boolean value) {
         String ret = "";
-        for (int i = 0; i <routeMax.size();i++){
-            ret+=arrCities.get(routeMax.get(i)).name;
-            if(i!=routeMax.size()-1){
-                ret+="("+arrCities.get(routeMax.get(i)).originalIndex+")";
-            }else{
-                ret+="("+arrCities.get(routeMax.get(i)).originalIndex+")";
+        for (int i = 0; i < routeMax.size(); i++) {
+            ret += arrCities.get(routeMax.get(i)).name;
+            if (i != routeMax.size() - 1) {
+                ret += "(" + arrCities.get(routeMax.get(i)).originalIndex + ")";
+            } else {
+                ret += "(" + arrCities.get(routeMax.get(i)).originalIndex + ")";
             }
-            
-            if(i!=routeMax.size()-1){
-                ret+=", ";
+
+            if (i != routeMax.size() - 1) {
+                ret += ", ";
             }
-            
+
         }
         return ret;
     }
@@ -217,26 +275,29 @@ public class main {
 
         }
         // print route
-        /*String finRoute = " 1 -> 6 \r\n" + //
-                " 2 -> 5 \r\n" + //
-                " 3 -> 2 \r\n" + //
-                " 4 -> 3 \r\n" + //
-                " 5 -> 8 \r\n" + //
-                " 6 -> 7 \r\n" + //
-                " 7 -> 4 \r\n" + //
-                " 8 -> 9 \r\n" + //
-                " 9 -> 1";
-        String finRoutefin = finRoute.replace(" 1 ", arrCities.get(0).name);
-        finRoutefin = finRoutefin.replace(" 2 ", arrCities.get(1).name);
-        finRoutefin = finRoutefin.replace(" 3 ", arrCities.get(2).name);
-        finRoutefin = finRoutefin.replace(" 4 ", arrCities.get(3).name);
-        finRoutefin = finRoutefin.replace(" 5 ", arrCities.get(4).name);
-        finRoutefin = finRoutefin.replace(" 6 ", arrCities.get(5).name);
-        finRoutefin = finRoutefin.replace(" 7 ", arrCities.get(6).name);
-        finRoutefin = finRoutefin.replace(" 8 ", arrCities.get(7).name);
-        finRoutefin = finRoutefin.replace(" 9 ", arrCities.get(8).name);
-        finRoutefin = finRoutefin.replace(" 10 ", arrCities.get(9).name);
-        System.out.println(finRoutefin);*/
+        /*
+         * String finRoute = " 1 -> 7 \r\n" + //
+         * " 2 -> 5 \r\n" + //
+         * " 3 -> 4 \r\n" + //
+         * " 4 -> 2 \r\n" + //
+         * " 5 -> 6 \r\n" + //
+         * " 6 -> 1 \r\n" + //
+         * " 7 -> 8 \r\n" + //
+         * " 8 -> 10 \r\n" + //
+         * " 9 -> 3 \r\n" + //
+         * " 10 -> 9 ";
+         * String finRoutefin = finRoute.replace(" 1 ", arrCities.get(0).name);
+         * finRoutefin = finRoutefin.replace(" 2 ", arrCities.get(1).name);
+         * finRoutefin = finRoutefin.replace(" 3 ", arrCities.get(2).name);
+         * finRoutefin = finRoutefin.replace(" 4 ", arrCities.get(3).name);
+         * finRoutefin = finRoutefin.replace(" 5 ", arrCities.get(4).name);
+         * finRoutefin = finRoutefin.replace(" 6 ", arrCities.get(5).name);
+         * finRoutefin = finRoutefin.replace(" 7 ", arrCities.get(6).name);
+         * finRoutefin = finRoutefin.replace(" 8 ", arrCities.get(7).name);
+         * finRoutefin = finRoutefin.replace(" 9 ", arrCities.get(8).name);
+         * finRoutefin = finRoutefin.replace(" 10 ", arrCities.get(9).name);
+         * System.out.println(finRoutefin);
+         */
     }
 
     /*
@@ -558,11 +619,14 @@ public class main {
     static void askForUserInputs() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the start city: ");
-        begin = scanner.nextLine();
+        //begin = scanner.nextLine();
+        begin = "Albany,NY";
         System.out.print("Enter the end city: ");
-        end = scanner.nextLine();
+        //end = scanner.nextLine();
+        end = "Albany,NY";
         System.out.print("Enter the budget in miles: ");
-        budget = scanner.nextInt();
+        //budget = scanner.nextInt();
+        budget = 8000;
     }
 
     /*
@@ -583,7 +647,7 @@ public class main {
         try {
             Scanner scan = new Scanner(towns);
             // (2)
-            int originIndex=0;
+            int originIndex = 0;
             while (scan.hasNextLine()) {
                 String name = scan.next();
                 double lat = scan.nextDouble();
@@ -593,7 +657,7 @@ public class main {
                 arrCities.add(new CityNode(name, lat, lon, pop));
                 nameList.add(name.toLowerCase());
 
-                arrCities.get(arrCities.size()-1).originalIndex=originIndex;
+                arrCities.get(arrCities.size() - 1).originalIndex = originIndex;
                 originIndex++;
             }
             scan.close();
@@ -691,7 +755,8 @@ public class main {
 
         for (int i = 0; i < statesCt; i++)
             for (int j = 0; j < statesCt; j++) {
-                R[i][j] = sGraph.weight(i, j) / sGraph.getPrize(j) * -1;
+                // R[i][j] = sGraph.weight(i, j) / sGraph.getPrize(j) * -1;
+                R[i][j] = 0;
                 Q[i][j] = (sGraph.getPrize(i) + sGraph.getPrize(j)) / sGraph.weight(i, j);
             }
     }
@@ -726,7 +791,7 @@ public class main {
     static void learnQ() {
         for (int i = 0; i < TRIALS; i++) {
             // for every episode, change learning rate and discount factor and epsilon?
-            //setHypers(i);
+            // setHypers(i);
             Agent[] aList = new Agent[NUM_AGENTS];
             for (int j = 0; j < NUM_AGENTS; j++) {
                 Graph newGraph = new Graph(sGraph);
@@ -744,7 +809,8 @@ public class main {
                             aj.isDone = true;
                         }
                         double maxQ = maxQ(aj, nextState);
-                        Q[aj.curState][nextState] = (1 - alpha) * Q[aj.curState][nextState] + alpha * gamma * maxQ;
+                        Q[aj.curState][nextState] = (1 - alpha) * Q[aj.curState][nextState] + alpha *
+                        gamma * maxQ;
                         aj.indexPath.add(nextState);
                         aj.total_wt += aj.shortestPath(aj.curState, nextState);
                         // if(nextState!=0 && nextState!=aj.getLastNode()){
@@ -763,41 +829,45 @@ public class main {
             ArrayList<Integer> path = jStar.indexPath;
             jStar.resetAgentMarks();
 
+            
             for (int v = 0; v < path.size() - 1; v++) {
-                double q = Q[path.get(v)][path.get(v + 1)];
-                double maxQ = maxQ(jStar, path.get(v + 1));
-                R[path.get(v)][path.get(v + 1)] += (W / jStar.total_prize);
-                Q[path.get(v)][path.get(v + 1)] = (1 - alpha) * q
-                        + alpha * (R[path.get(v)][path.get(v + 1)] + gamma * maxQ);
+            double q = Q[path.get(v)][path.get(v + 1)];
+            double maxQ = maxQ(jStar, path.get(v + 1));
+            R[path.get(v)][path.get(v + 1)] += (W / jStar.total_prize);
+            Q[path.get(v)][path.get(v + 1)] = (1 - alpha) * q
+            + alpha * (R[path.get(v)][path.get(v + 1)] + gamma * maxQ);
             }
-            //new logic:
-            if(aList[mostFitIndex].total_prize > prizeMax){
+             
+            prizeCol.append(""+i+"\t"+(aList[mostFitIndex].total_prize-100)+"\n");
+            if (aList[mostFitIndex].total_prize > prizeMax) {
                 prizeMax = aList[mostFitIndex].total_prize;
                 routeMax = path;
-
+                routeMaxIter = i;
                 for (int v = 0; v < path.size() - 1; v++) {
-                double q = Q[path.get(v)][path.get(v + 1)];
-                double maxQ = maxQ(jStar, path.get(v + 1));
-                R[path.get(v)][path.get(v + 1)] += (2*W / jStar.total_prize);
-                Q[path.get(v)][path.get(v + 1)] = (1 - alpha) * q
-                        + alpha * (R[path.get(v)][path.get(v + 1)] + gamma * maxQ);
+                    double q = Q[path.get(v)][path.get(v + 1)];
+                    double maxQ = maxQ(jStar, path.get(v + 1));
+                    R[path.get(v)][path.get(v + 1)] += (i * W / jStar.total_prize);
+                    Q[path.get(v)][path.get(v + 1)] = (1 - alpha) * q
+                            + alpha * (R[path.get(v)][path.get(v + 1)] + gamma * maxQ);
                 }
-            } 
-            //check current Q table route:
-            /*traverseQ(true);
-            if(total_prize - (arrCities.get(0).pop * 2)> bestQRoutePrize){
-                bestQRoutePrize = total_prize- (arrCities.get(0).pop * 2);
-                bestQRoute = makeRouteString();
-                bestQRouteIter=i;
-                bestQRouteDist = total_wt;
-            }*/
+            }
+            // check current Q table route:
+            /*
+             * traverseQ(true);
+             * if(total_prize - (arrCities.get(0).pop * 2)> bestQRoutePrize){
+             * bestQRoutePrize = total_prize- (arrCities.get(0).pop * 2);
+             * bestQRoute = makeRouteString();
+             * bestQRouteIter=i;
+             * bestQRouteDist = total_wt;
+             * }
+             */
         }
     }
 
     private static void setHypers(int i) {
         alpha = 1 - (i / TRIALS);
         // gamma = i/TRIALS;
-        q0 =(i / TRIALS);
+        q0 = (i / TRIALS);
     }
 
     /*
@@ -967,6 +1037,7 @@ public class main {
         DFSGreed_Q();
         remainingBudget = budget - total_wt; // updates remaining budget
     }
+
     private static void traverseQ(boolean value) {
         reset();
         DFSGreed_Q(true);
@@ -1016,6 +1087,7 @@ public class main {
             }
         }
     }
+
     static void DFSGreed_Q(boolean value) {
         int curState = 0;
         sGraph.setMark(curState, VISITED);
@@ -1030,19 +1102,22 @@ public class main {
                 }
             }
             sGraph.setMark(nexState, VISITED);
-            /*if (nexState != sGraph.getLastNode()) {
-                System.out.printf(
-                        "Going from %-18s to %-18s was %-5.2fmiles collecting $%-5d with a ratio of $%.7f/miles\n",
-                        sGraph.getName(curState), sGraph.getName(nexState),
-                        sGraph.shortestPath(curState, nexState),
-                        sGraph.getPrize(nexState),
-                        sGraph.getPrize(nexState) / sGraph.shortestPath(curState, nexState));
-            } else {
-                System.out.printf(
-                        "Going from %-18s to %-18s was %-5.2fmiles\n",
-                        sGraph.getName(curState), sGraph.getName(nexState),
-                        sGraph.shortestPath(curState, nexState));
-            }*/
+            /*
+             * if (nexState != sGraph.getLastNode()) {
+             * System.out.printf(
+             * "Going from %-18s to %-18s was %-5.2fmiles collecting $%-5d with a ratio of $%.7f/miles\n"
+             * ,
+             * sGraph.getName(curState), sGraph.getName(nexState),
+             * sGraph.shortestPath(curState, nexState),
+             * sGraph.getPrize(nexState),
+             * sGraph.getPrize(nexState) / sGraph.shortestPath(curState, nexState));
+             * } else {
+             * System.out.printf(
+             * "Going from %-18s to %-18s was %-5.2fmiles\n",
+             * sGraph.getName(curState), sGraph.getName(nexState),
+             * sGraph.shortestPath(curState, nexState));
+             * }
+             */
             sGraph.printExtraPathIfNeeded(curState, nexState, route);
             total_wt += sGraph.shortestPath(curState, nexState);
             curState = nexState;
