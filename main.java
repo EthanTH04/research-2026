@@ -70,6 +70,15 @@ public class main {
 
         askForUserInputs();
 
+        /*String[] cityList = { "Albany,NY", "Annapolis,MD", "Atlanta,GA", "Augusta,ME", "Austin,TX", "BatonRouge,LA",
+                "Bismarck,ND", "Boise,ID", "Boston,MA", "CarsonCity,NV", "Charleston,WV", "Cheyenne,WY", "Columbia,SC",
+                "Columbus,OH", "Concord,NH", "Denver,CO", "DesMoines,IA", "Dover,DE", "Frankfort,KY", "Harrisburg,PA",
+                "Hartford,CT", "Helena,MT", "Indianapolis,IN", "Jackson,MS", "JeffersonCity,MO", "Lansing,MI",
+                "Lincoln,NE", "LittleRock,AR", "Madison,WI", "Montgomery,AL", "Montpelier,VT", "Nashville,TN",
+                "OklahomaCity,OK", "Olympia,WA", "Phoenix,AZ", "Pierre,SD", "Providence,RI", "Raleigh,NC",
+                "Richmond,VA", "Sacramento,CA", "SaintPaul,MN", "Salem,OR", "SaltLakeCity,UT", "SantaFe,NM",
+                "Springfield,IL", "Tallahassee,FL", "Topeka,KS", "Trenton,NJ" };*/
+
         String[] cityList = { "Albany,NY", "Annapolis,MD", "Atlanta,GA", "Augusta,ME", "Austin,TX", "BatonRouge,LA",
                 "Bismarck,ND", "Boise,ID", "Boston,MA", "CarsonCity,NV"/* , "Charleston,WV", "Cheyenne,WY", "Columbia,SC",
     "Columbus,OH", "Concord,NH", "Denver,CO", "DesMoines,IA", "Dover,DE", "Frankfort,KY", "Harrisburg,PA"*/ };
