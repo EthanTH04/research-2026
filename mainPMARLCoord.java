@@ -966,16 +966,14 @@ public class mainPMARLCoord {
                     prob[i] /= total;
                 }
                 //Infinite Loop Fix (code altered)
-                double target = rand.nextDouble();
-                int idx = 0;
-                double cumulative = 0;
-                for (int i = 0; i < prob.length; i++) {
-                    cumulative += prob[i];
-                    if (target <= cumulative) {
-                    idx = i;
-                    break;
-                }
-    idx = i; // fallback to last element
+                if (total == 0) {
+    return feasible.get(rand.nextInt(feasible.size()));
+}
+double target = rand.nextDouble();
+int idx = -1;
+while (target > 0 && idx < feasible.size() - 1) {
+    idx++;
+    target -= prob[idx];
 }
 return feasible.get(idx);
 
