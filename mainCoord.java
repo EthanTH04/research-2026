@@ -10,13 +10,13 @@ import com.google.ortools.linearsolver.MPVariable;*/
 
 public class mainCoord {
     // meta variable
-    static String fileName = "Cities_13509.txt";
+    static String fileName = "California_Cities.txt";
 
     // CHANGE CITY AND PRIZEGOAL
     static String begin = "";
     static String end = "";
     static double budget = 0; // budget in miles
-    static int n = 13509;
+    static int n = 620;
     private static double remainingBudget;
 
     // static variables to be tweaked by user
@@ -629,13 +629,13 @@ public class mainCoord {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the start city: ");
         //begin = scanner.nextLine();
-        begin = "1";
+        begin = "SanDiegoArea_001";
         System.out.print("Enter the end city: ");
         //end = scanner.nextLine();
-        end = "1";
+        end = "SanDiegoArea_001";
         System.out.print("Enter the budget in miles: ");
         //budget = scanner.nextInt();
-        budget = 5000000;
+        budget = 1100000;
     }
 
     /*
@@ -954,14 +954,19 @@ public class mainCoord {
                 for (int i = 0; i < feasible.size(); i++) {
                     prob[i] /= total;
                 }
-
+                //Infinite Loop Fix (code altered)
                 double target = rand.nextDouble();
-                int idx = -1;
-                while (target > 0) {
-                    idx++;
-                    target -= prob[idx];
+                int idx = 0;
+                double cumulative = 0;
+                for (int i = 0; i < prob.length; i++) {
+                    cumulative += prob[i];
+                    if (target <= cumulative) {
+                    idx = i;
+                    break;
                 }
-                return feasible.get(idx);
+            idx = i; // fallback to last element
+    }
+    return feasible.get(idx);
             } else {
                 // Exploitation
                 int maxIdx = -1;
