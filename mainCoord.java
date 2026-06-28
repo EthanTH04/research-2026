@@ -635,7 +635,7 @@ public class mainCoord {
         end = "SanDiegoArea_001";
         System.out.print("Enter the budget in miles: ");
         //budget = scanner.nextInt();
-        budget = 750000;
+        budget = 1100000;
     }
 
     /*
@@ -954,17 +954,18 @@ public class mainCoord {
                 for (int i = 0; i < feasible.size(); i++) {
                     prob[i] /= total;
                 }
-                //Infinite Loop Fix (code altered)
+                //Infinite Loop Fix 
                 if (total == 0) {
-    return feasible.get(rand.nextInt(feasible.size()));
-}
-double target = rand.nextDouble();
-int idx = -1;
-while (target > 0 && idx < feasible.size() - 1) {
-    idx++;
-    target -= prob[idx];
-}
-return feasible.get(idx);
+                    return feasible.get(rand.nextInt(feasible.size()));
+                }
+
+                double target = rand.nextDouble();
+                int idx = -1;
+                while (target > 0 && idx < feasible.size() - 1) {
+                    idx++;
+                    target -= prob[idx];
+                }
+                return feasible.get(idx);
             } else {
                 // Exploitation
                 int maxIdx = -1;
